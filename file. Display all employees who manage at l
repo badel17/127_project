@@ -1,0 +1,35 @@
+2. Display all employees who manage at least one employee.
+    select distinct e.* from emp e join emp m where e.empno = m.mgr;
+
+3. Display all employees who do not manage another employee(s).
+    select distinct * from emp where empno not in (select distinct mgr from emp where mgr is not null);
+
+4. Display all employees who have an SG 1 salary.
+
+
+5. Display all employees who were hired on a Thursday.
+    select * from emp where dayofweek(hiredate) = 5;
+
+6. Display the name of an employee and all of his/her colleagues. 
+Two employees are colleagues if they work in the same department.
+    select emp1.ename 'Name', emp2.ename 'Colleague' from emp emp1 join emp emp2 on emp1.deptno = emp2.deptno where emp1.ename != emp2.ename;
+
+7. Display the department (or all departments) with the highest average 
+salary (rounded off to the nearest whole number).
+    select dept.deptno, dept.dname, dept.loc, round(avg(sal)) 'ave salary' from emp join dept on emp.deptno = dept.deptno group by deptno;
+
+8. Use the customeritem database.
+    use customeritem;
+
+9. Display all customers who do not have any transactions yet. (Try this without using subqueries).
+    select c.cid, c.cname, c.bday from customer c left join buys b on c.cid = b.cid where b.cid is null;
+    
+10. Display the total amount spent of each customer.
+    select c.name, coalesce(sum(i.sellingprice * b.qty), 0) 'total amount spent' from customer c left join buys b on c.cid = b.cid left join item i on b.itemid = i.itemid group by c.cid order by `total amount spent` desc;
+
+11. Display the store’s total profit on each day.
+    select b.date_time, sum(b.qty * i.sellingprice) `total profit` from buys b join item i on b.itemid = i.itemid group by date(b.date_time) order by b.date_time;
+
+12. For every item, display its itemid, itemname, unitprice, sellingprice, and the total units sold. Arrange the
+resulting table in descending order according to the total units sold.
+    select i.itemid, i.itemname, i.unitprice, i.sellingprice, coalesce(sum(b.qty), 0) `total units sold` from item i left join buys b on i.itemid = b.itemid group by itemid order by `total units sold` desc;
