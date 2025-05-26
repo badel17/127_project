@@ -69,7 +69,7 @@ class StudentOrgDBMS:
             )""")
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS `fee` (
-                `trans_num` int(10) NOT NULL,
+                `trans_num` int(10) NOT NULL AUTO_INCREMENT,
                 `amount` int,
                 `due_date` DATE,
                 `org_id` int(6) NOT NULL,
@@ -86,8 +86,11 @@ class StudentOrgDBMS:
                 CONSTRAINT pays_trans_num_fk FOREIGN KEY(trans_num) REFERENCES fee(trans_num)
             )""")
         
-    def checkUsernamePassword(self, username):
-        self.cursor.execute("SELECT mem_password FROM member WHERE mem_username = %s", (username,))
+    def checkUsernamePassword(self, username, type):
+        if type == "Member":
+            self.cursor.execute("SELECT mem_password FROM member WHERE mem_username = %s", (username,))
+        elif type == "Organization":
+            self.cursor.execute("SELECT org_password FROM organization WHERE org_username = %s", (username,))
         return self.cursor.fetchone()
 
     def add_student(self, student_num, first_name, last_name, mem_username, mem_password, gender, acad_year_enrolled, degree_prog):
@@ -119,6 +122,24 @@ class StudentOrgDBMS:
         self.cursor.execute("SELECT mem_username FROM member WHERE student_num = %s", (student_num,))
         return self.cursor.fetchone()
 
+    def get_all_payments(self, student_num):
+        self.cursor.execute("SELECT p.trans_num, p.payment_status, p.payment_date FROM pays p JOIN member m ON p.student_num = m.student_num WHERE m.student_num = %s", (student_num,))
+        result = self.cursor.fetchall()
+        return result if result else None
+    
+    def get_org_id_username(self, username):
+        self.cursor.execute("SELECT org_id FROM organization WHERE org_username = %s", (username,))
+        return self.cursor.fetchone()
+
+    def get_org_name(self, org_id):
+        self.cursor.execute("SELECT org_name FROM organization WHERE org_id = %s", (org_id,))
+        return self.cursor.fetchone()
+    
+    def get_org_events(self, org_id):
+        self.cursor.execute("SELECT * FROM organization_event WHERE org_id = %s", (org_id,))
+        result = self.cursor.fetchall()
+        return result if result else None
+
     ###############################
 
     def get_students(self):
@@ -126,7 +147,7 @@ class StudentOrgDBMS:
         return self.cursor.fetchall()
 
     def add_organization(self, org_id, org_username, org_password, org_name, year_founded, org_type):
-        self.cursor.execute("INSERT INTO organization (org_id, org_username, org_password, org_name, year_founded, org_type) VALUES (%s, %s, %s, %s, %s, %s)", (org_id, org_username, org_password, org_name, year_founded, org_type))
+        self.cursor.execute("INSERT INTO organization (org_id, org_username, org_password, org_name, year_founded, org_type) VALUES (%s, %s, %s, %s, %s, %s)", (org_id, org_username, org_password, org_name, year_founded, org_type,))
         self.connection.commit()
 
     def get_organizations(self):
@@ -145,13 +166,8 @@ class StudentOrgDBMS:
         self.cursor.execute("INSERT INTO joins (student_num, org_id, membership_status, academic_year, classification, type, role, semester) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (student_num, org_id, membership_status, acad_year, classification, joins_type, role, semester,))
         self.connection.commit()
 
-    def get_memberships(self):
-        self.cursor.execute("""
-            SELECT m.membership_id, s.name, o.name
-            FROM memberships m
-            JOIN students s ON m.student_id = s.student_id
-            JOIN organizations o ON m.org_id = o.org_id
-        """)
+    def get_memberships(self, org_id):
+        self.cursor.execute("SELECT m.student_num, m.first_name, m.last_name, m.degree_prog FROM member m JOIN joins j ON m.student_num = j.student_num JOIN organization o ON j.org_id = o.org_id WHERE o.org_id = %s", (org_id,))
         return self.cursor.fetchall()
     
     def add_event(self, org_id, event_name):
