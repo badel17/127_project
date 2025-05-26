@@ -94,6 +94,33 @@ class StudentOrgDBMS:
         self.cursor.execute("INSERT INTO member(student_num, first_name, last_name, mem_username, mem_password, gender, acad_year_enrolled, degree_prog) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (student_num, first_name, last_name, mem_username, mem_password, gender, acad_year_enrolled, degree_prog))
         self.connection.commit()
 
+    def get_stud_num(self, username):
+        self.cursor.execute("SELECT student_num FROM member WHERE mem_username = %s", (username,))
+        return self.cursor.fetchone()
+    
+    def get_stud_name(self, student_num):
+        self.cursor.execute("SELECT first_name, last_name FROM member WHERE student_num = %s", (student_num,))
+        results = self.cursor.fetchone()
+        if results:
+            first_name, last_name = results
+            return first_name, last_name
+        return None, None
+    
+    def check_if_have_org(self, student_num):
+        self.cursor.execute("SELECT o.org_name FROM organization o JOIN joins j ON o.org_id = j.org_id WHERE j.student_num = %s", (student_num,))
+        result = self.cursor.fetchall()
+        return result if result else None
+    
+    def get_org_id(self, org_name):
+        self.cursor.execute("SELECT org_id FROM organization WHERE org_name = %s", (org_name,))
+        return self.cursor.fetchone()
+    
+    def get_username(self, student_num):
+        self.cursor.execute("SELECT mem_username FROM member WHERE student_num = %s", (student_num,))
+        return self.cursor.fetchone()
+
+    ###############################
+
     def get_students(self):
         self.cursor.execute("SELECT * FROM member")
         return self.cursor.fetchall()
@@ -115,7 +142,7 @@ class StudentOrgDBMS:
         return self.cursor.fetchone() is not None
 
     def add_membership(self, student_num, org_id, membership_status, acad_year, classification, joins_type, role, semester):
-        self.cursor.execute("INSERT INTO joins VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (student_num, org_id, membership_status, acad_year, classification, joins_type, role, semester))
+        self.cursor.execute("INSERT INTO joins (student_num, org_id, membership_status, academic_year, classification, type, role, semester) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (student_num, org_id, membership_status, acad_year, classification, joins_type, role, semester,))
         self.connection.commit()
 
     def get_memberships(self):
