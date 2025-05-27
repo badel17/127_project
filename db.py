@@ -182,7 +182,7 @@ class StudentOrgDBMS:
         self.cursor.execute("INSERT INTO pays VALUES (%s, %s, %s, %s)", (student_num, trans_num, payment_status, payment_date))
         self.connection.commit()
 
-######
+######Additional features of student
     def get_memorg(self, student_num):
         self.cursor.execute("""
             SELECT org_name FROM organization o 
