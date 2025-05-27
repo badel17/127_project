@@ -181,3 +181,30 @@ class StudentOrgDBMS:
     def add_pays(self, student_num, trans_num, payment_status, payment_date):
         self.cursor.execute("INSERT INTO pays VALUES (%s, %s, %s, %s)", (student_num, trans_num, payment_status, payment_date))
         self.connection.commit()
+
+######
+    def get_memorg(self, student_num):
+        self.cursor.execute("""
+            SELECT org_name FROM organization o 
+            JOIN joins j ON o.org_id=j.org_id 
+            WHERE student_num = %s
+        """, (student_num,))
+        return self.cursor.fetchall()
+    
+    def add_memorg(self, student_num, org_id, membership_status, academic_year, classification, type, role, semester):
+        self.cursor.execute("INSERT INTO joins (student_num, org_id, membership_status, academic_year, classification, type, role, semester) VALUES (%s, %s, %s, %s, %s,  %s, %s, %s)", (student_num, org_id, membership_status, academic_year, classification, type, role, semester))
+        self.connection.commit()
+
+    def get_member(self, student_num):
+        self.cursor.execute("SELECT * FROM member WHERE student_num = %s", (student_num,))
+        return self.cursor.fetchall()
+    
+    def update_member(self, mem_username, mem_password, degree_prog, student_num):
+        self.cursor.execute("UPDATE member SET mem_username = %s, mem_password = %s, degree_prog = %s WHERE student_num = %s", (mem_username, mem_password, degree_prog, student_num))
+        self.connection.commit()
+    
+    def get_pending(self, student_num):
+        self.cursor.execute("""
+        SELECT o.org_name, f.trans_num, f.amount, p.payment_status FROM fee f  JOIN pays p ON f.trans_num = p.trans_num  JOIN organization o ON f.org_id = o.org_id WHERE payment_status = 'NOT PAID' AND p.student_num = %s GROUP BY org_name, f.trans_num, f.amount, p.payment_status
+        """, (student_num,))
+        return self.cursor.fetchall()
