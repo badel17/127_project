@@ -324,3 +324,27 @@ HAVING total_debt = (SELECT MAX(total_debt)FROM (SELECT p.student_num, SUM(f.amo
         GROUP BY p.student_num
     ) AS debts
 );
+
+--Show list of organizations joined by the student(member)
+SELECT org_name FROM organization o JOIN joins j ON o.org_id=j.org_id WHERE student_num = %s;
+
+--Can join orgs
+INSERT INTO joins (student_num, org_id, membership_status, academic_year, classification, type, role, semester) 
+VALUES (%s, %s, %s, %s, %s,  %s, %s, %s);
+
+--Can show current profile
+SELECT * FROM member WHERE student_num = %s;
+
+--Update current profile of student/member
+UPDATE member SET mem_username = %s,mem_password = %s,  degree_prog = %s WHERE student_num = %s;
+
+--Show pending fees from different organization
+SELECT o.org_name, f.trans_num, f.amount, p.payment_status 
+    FROM fee f  
+    JOIN pays p ON f.trans_num = p.trans_num 
+    JOIN organization o ON f.org_id = o.org_id 
+    WHERE payment_status = 'NOT PAID' AND p.student_num = %s 
+    GROUP BY org_name, f.trans_num, f.amount, p.payment_status;
+
+
+
